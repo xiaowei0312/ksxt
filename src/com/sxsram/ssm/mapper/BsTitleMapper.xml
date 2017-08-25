@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.sxsram.ssm.mapper.BsTitleMapper">
+	<insert id="insertNewBsTitle" parameterType="com.sxsram.ssm.entity.BsTitle">
+		<!-- 将插入数据的主键返回，返回到user对象中 keyProperty: 将查询到的主键赋给 parameterType的哪个属性 order: 
+			AFTER，插入之后执行查询 -->
+		<selectKey keyProperty="id" order="AFTER" resultType="int">
+			SELECT
+			LAST_INSERT_ID()
+		</selectKey>
+		insert into t_bs_title (name,taskBookId,bsDirId,extra,delFlag,addTime,lmtTime) 
+			values(#{name},#{taskBookId},#{bsDirId},null,0,now(),now());
+	</insert>
+	
+	<delete id="delBsTitle" parameterType="Integer">
+		update t_bs_title set delFlag = 1 where id = #{id}
+	</delete>
+	
+	<update id="updateBsTitle" parameterType="com.sxsram.ssm.entity.BsTitle">
+		update t_bs_title
+		<trim prefix="set" suffixOverrides=",">
+			<if test="name != null">
+				name = #{name},
+			</if>
+			<if test="taskBookId != null">
+				taskBookId = #{taskBookId},
+			</if>
+			<if test="bsDirId != null">
+				bsDirId = #{bsDirId},
+			</if>
+			<if test="extra != null">
+				extra = #{extra},
+			</if>
+			<if test="delFlag != null">
+				delFlag = #{delFlag},
+			</if>
+			<if test="extra != null">
+				extra = #{extra},
+			</if>
+			<if test="addTime != null">
+				addTime = #{addTime},
+			</if>
+		</trim>
+		<where>
+			id = #{id}
+		</where>
+	</update>
+	
+	<select id="querySingleBsTitle" parameterType="com.sxsram.ssm.entity.BsTitleQueryVo" resultMap="bsTitleMap">
+		select 
+			t.*,b.functionDesc,
+				b.refBook,b.extra as bookExtra,b.delFlag as bookDelFlag,b.addTime as bookAddTime,
+					b.lmtTime as bookLmtTime,
+				d.name as dirName
+		from 
+			t_bs_title t left join t_bs_task_book b 
+				on t.taskBookId = b.id 
+				join t_training_dir d on t.bsDirId = d.id
+		where
+			1 = 1
+			<if test="queryCondition != null">
+				<if test="queryCondition.whereCond != null">
+					and ${queryCondition.whereCond}
+				</if>
+			</if>
+			<if test="pagination != null">
+				<if test="pagination.orderByCols != null">
+					order by ${pagination.orderByCols}
+				</if>
+				<if test="pagination.limitStart != null">
+					limit #{pagination.limitStart},#{pagination.limitNum}
+				</if>
+			</if>
+	</select>
+	
+	<select id="queryMultiBsTitles" parameterType="com.sxsram.ssm.entity.BsTitleQueryVo" resultMap="bsTitleMap">
+		select 
+			t.*,b.functionDesc,
+				b.refBook,b.extra as bookExtra,b.delFlag as bookDelFlag,b.addTime as bookAddTime,
+					b.lmtTime as bookLmtTime,
+				d.name as dirName
+		from 
+			t_bs_title t left join t_bs_task_book b 
+				on t.taskBookId = b.id 
+				join t_training_dir d on t.bsDirId = d.id
+		where
+			1 = 1
+			<if test="queryCondition != null">
+				<if test="queryCondition.whereCond != null">
+					and ${queryCondition.whereCond}
+				</if>
+			</if>
+			<if test="pagination != null">
+				<if test="pagination.orderByCols != null">
+					order by ${pagination.orderByCols}
+				</if>
+				<if test="pagination.limitStart != null">
+					limit #{pagination.limitStart},#{pagination.limitNum}
+				</if>
+			</if>
+	</select>
+	
+	<resultMap type="com.sxsram.ssm.entity.BsTitle" id="bsTitleMap" autoMapping="true">
+		<id column="id" property="id" />
+		<association property="bsTaskBook" javaType="com.sxsram.ssm.entity.BsTaskBook">
+			<id column="taskBookId" property="id" />
+			<result column="bookExtra" property="extra" />
+			<result column="bookDelFlag" property="delFlag" />
+			<result column="bookAddTime" property="addTime" />
+			<result column="bookLmtTime" property="lmtTime" />
+		</association>
+		<association property="bsDir" javaType="com.sxsram.ssm.entity.TrainingDir">
+			<id column="bsDirId" property="id" />
+			<result column="dirName" property="name" />
+		</association>
+	</resultMap>
+</mapper>
+

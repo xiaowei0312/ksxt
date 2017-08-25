@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.sxsram.ssm.mapper.BsTaskStuMapper">
+	<insert id="insertNewBsTaskStu" parameterType="com.sxsram.ssm.entity.BsTaskStu">
+		<!-- 将插入数据的主键返回，返回到user对象中 keyProperty: 将查询到的主键赋给 parameterType的哪个属性 order: 
+			AFTER，插入之后执行查询 -->
+		<selectKey keyProperty="id" order="AFTER" resultType="int">
+			SELECT
+			LAST_INSERT_ID()
+		</selectKey>
+		insert into t_bs_task_stu
+		(studentId,taskId,status,statusPhase,extra,delFlag,addTime,lmtTime)
+		values(#{studentId},#{taskId},#{status},#{statusPhase},'',0,now(),now())
+	</insert>
+
+	<delete id="deleteBsTaskStu" parameterType="Integer">
+		update t_bs_task_stu
+		set delFlag = 1 where id = #{id}
+	</delete>
+
+	<update id="updateBsTaskStu" parameterType="com.sxsram.ssm.entity.BsTaskStu">
+		update t_bs_task_stu
+		<trim prefix="set" suffixOverrides=",">
+			<if test="studentId != null">
+				studentId = #{studentId},
+			</if>
+			<if test="taskId != null">
+				taskId = md5(#{taskId}),
+			</if>
+			<if test="status != null">
+				status = #{status},
+			</if>
+			<if test="statusPhase != null">
+				statusPhase = #{statusPhase},
+			</if>
+			<if test="extra != null">
+				extra = #{extra},
+			</if>
+			<if test="delFlag != null">
+				delFlag = #{delFlag},
+			</if>
+			<if test="addTime != null">
+				addTime = #{addTime},
+			</if>
+		</trim>
+		<where>
+			id = #{id}
+		</where>
+	</update>
+
+	<select id="querySingleBsTask" parameterType="com.sxsram.ssm.entity.BsTaskStuQueryVo"
+		resultMap="bsTaskMap">
+		select
+		task.*,
+		adminTask.userId as
+		adminTaskUserId,adminTask.beginTime,adminTask.endTime,adminTask.type,
+		adminTask.status as adminTaskStatus,adminTask.statusPhase as
+		adminTaskStatusPhase,adminTask.extra as adminTaskExtra,
+		u.id as uId,u.name as uName,
+		commitFormat.id as commitFormatId,
+		commitFormat.format as commitFormatFormat,commitFormat.eg as commitFormatEg,
+		dbType.id as dbTypeId,dbType.name as dbTypeName,
+		stu.name as stuName,
+		commitRecord.id as commitRecordId,
+		commitRecord.commitTime,commitRecord.commitFileName,
+		commitRecord.status as commitStatus,commitRecord.statusPhase as
+		commitStatusPhase,
+		dbRecord.id as dbRecordId,
+		dbRecord.dbTime,dbRecord.status as dbStatus,dbRecord.statusPhase as dbStatusPhase
+		from
+		t_bs_task_stu task join t_bs_task_admin adminTask
+		on task.taskId = adminTask.id
+		join t_user u
+		on adminTask.userId = u.id
+		left join t_bs_commit_format commitFormat
+		on adminTask.bsFormatId = commitFormat.id
+		left join t_bs_db_type dbType
+		on adminTask.bsDbTypeId = dbType.id
+		join t_student stu
+		on task.studentId = stu.id
+		left join t_bs_task_commit_record commitRecord
+		on task.id = commitRecord.stuTaskId
+		left join t_bs_task_db_record dbRecord
+		on task.id = dbRecord.stuTaskId
+		where
+		1 = 1
+		<if test="queryCondition != null">
+			<if test="queryCondition.whereCond != null">
+				and ${queryCondition.whereCond}
+			</if>
+		</if>
+		<if test="pagination != null">
+			<if test="pagination.orderByCols != null">
+				order by ${pagination.orderByCols}
+			</if>
+			<if test="pagination.limitStart != null">
+				limit #{pagination.limitStart},#{pagination.limitNum}
+			</if>
+		</if>
+	</select>
+
+	<select id="queryMultiBsTaskCount" parameterType="com.sxsram.ssm.entity.BsTaskStuQueryVo"
+		resultMap="bsTaskMap">
+		select
+		COUNT(*)
+		from
+		t_bs_task_stu task join t_bs_task_admin adminTask
+		on task.taskId = adminTask.id
+		join t_user u
+		on adminTask.userId = u.id
+		left join t_bs_commit_format commitFormat
+		on adminTask.bsFormatId = commitFormat.id
+		left join t_bs_db_type dbType
+		on adminTask.bsDbTypeId = dbType.id
+		join t_student stu
+		on task.studentId = stu.id
+		left join t_bs_task_commit_record commitRecord
+		on task.id = commitRecord.stuTaskId
+		left join t_bs_task_db_record dbRecord
+		on task.id = dbRecord.stuTaskId
+		where
+		1 = 1
+		<if test="queryCondition != null">
+			<if test="queryCondition.whereCond != null">
+				and ${queryCondition.whereCond}
+			</if>
+		</if>
+		<if test="pagination != null">
+			<if test="pagination.orderByCols != null">
+				order by ${pagination.orderByCols}
+			</if>
+			<if test="pagination.limitStart != null">
+				limit #{pagination.limitStart},#{pagination.limitNum}
+			</if>
+		</if>
+	</select>
+
+	<select id="queryMultiBsTask" parameterType="com.sxsram.ssm.entity.BsTaskStuQueryVo"
+		resultMap="bsTaskMap">
+		select
+		task.*,
+		stu.name as stuName,
+		commitRecord.id as commitRecordId,
+		commitRecord.commitTime,commitRecord.commitFileName,
+		commitRecord.status as commitStatus,commitRecord.statusPhase as
+		commitStatusPhase,
+		dbRecord.id as dbRecordId,
+		dbRecord.dbTime,dbRecord.status as dbStatus,dbRecord.statusPhase as dbStatusPhase
+		from
+		(
+		select
+		task.*,
+		adminTask.userId as
+		adminTaskUserId,adminTask.beginTime,adminTask.endTime,adminTask.type,
+		adminTask.status as adminTaskStatus,adminTask.statusPhase as
+		adminTaskStatusPhase,adminTask.extra as adminTaskExtra,
+		u.id as uId,u.name as uName,
+		commitFormat.id as commitFormatId,
+		commitFormat.format as commitFormatFormat,commitFormat.eg as commitFormatEg,
+		dbType.id as dbTypeId,dbType.name as dbTypeName
+		from
+		t_bs_task_stu task join t_bs_task_admin adminTask
+		on task.taskId = adminTask.id
+		join t_user u
+		on adminTask.userId = u.id
+		left join t_bs_commit_format commitFormat
+		on adminTask.bsFormatId = commitFormat.id
+		left join t_bs_db_type dbType
+		on adminTask.bsDbTypeId = dbType.id
+		where
+		1 = 1
+		<if test="queryCondition != null">
+			<if test="queryCondition.whereCond != null">
+				and ${queryCondition.whereCond}
+			</if>
+		</if>
+		<if test="pagination != null">
+			<if test="pagination.orderByCols != null">
+				order by ${pagination.orderByCols}
+			</if>
+			<if test="pagination.limitStart != null">
+				limit #{pagination.limitStart},#{pagination.limitNum}
+			</if>
+		</if>
+		) task
+		join t_student stu
+		on task.studentId = stu.id
+		left join t_bs_task_commit_record commitRecord
+		on task.id = commitRecord.stuTaskId
+		left join t_bs_task_db_record dbRecord
+		on task.id = dbRecord.stuTaskId
+	</select>
+
+	<resultMap type="com.sxsram.ssm.entity.BsTaskStu" id="bsTaskMap"
+		autoMapping="true">
+		<id column="id" property="id" />
+		<!-- <result column="name" property="name" /> <result column="gender" property="gender" 
+			/> <result column="idcard" property="idcard" /> <result column="stuNo" property="stuNo" 
+			/> <result column="gradeNo" property="gradeNo" /> <result column="majorId" 
+			property="majorId"/> <result column="trainingClassId" property="trainingClassId" 
+			/> <result column="bsDirId" property="bsDirId" /> <result column="bsTitleId" 
+			property="bsTitleId" /> <result column="bsInnerTeacher" property="bsInnerTeacher" 
+			/> <result column="bsOuterTeacher" property="bsOuterTeacher" /> <result column="password" 
+			property="password" /> -->
+
+		<association property="task" javaType="com.sxsram.ssm.entity.BsTaskAdmin">
+			<id column="taskId" property="id" />
+			<result column="adminTaskUserId" property="userId" />
+			<result column="beginTime" property="beginTime" />
+			<result column="endTime" property="endTime" />
+			<result column="type" property="type" />
+			<result column="adminTaskStatus" property="status" />
+			<result column="adminTaskStatusPhase" property="statusPhase" />
+			<result column="adminTaskExtra" property="extra" />
+			<association property="user" javaType="com.sxsram.ssm.entity.User">
+				<id column="uId" property="id" />
+				<result column="uName" property="name" />
+			</association>
+			<association property="bsCommitFormat"
+				javaType="com.sxsram.ssm.entity.BsCommitFormat">
+				<id column="commitFormatId" property="id" />
+				<result column="commitFormatFormat" property="format" />
+				<result column="commitFormatEg" property="eg" />
+			</association>
+			<association property="bsDbType" javaType="com.sxsram.ssm.entity.BsDbType">
+				<id column="dbTypeId" property="id" />
+				<result column="dbTypeName" property="name" />
+			</association>
+		</association>
+		<association property="student" javaType="com.sxsram.ssm.entity.Student">
+			<id column="studentId" property="id" />
+			<result column="stuName" property="name" />
+		</association>
+		<collection property="commitRecordList"
+			ofType="com.sxsram.ssm.entity.BsTaskCommitRecord">
+			<id column="commitRecordId" property="id" />
+			<result column="commitTime" property="commitTime" />
+			<result column="commitFileName" property="commitFileName" />
+			<result column="commitStatus" property="status" />
+			<result column="commitStatusPhase" property="statusPhase" />
+		</collection>
+		<collection property="dbRecordList" ofType="com.sxsram.ssm.entity.BsTaskDbRecord">
+			<id column="dbRecordId" property="id" />
+			<result column="dbTime" property="dbTime" />
+			<result column="dbStatus" property="status" />
+			<result column="dbStatusPhase" property="statusPhase" />
+		</collection>
+	</resultMap>
+</mapper>

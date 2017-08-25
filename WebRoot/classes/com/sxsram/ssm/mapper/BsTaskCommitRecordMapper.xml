@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.sxsram.ssm.mapper.BsTaskCommitRecordMapper">
+	<insert id="insertNewBsTaskCommitRecord" parameterType="com.sxsram.ssm.entity.BsTaskCommitRecord">
+		<!-- 将插入数据的主键返回，返回到user对象中 keyProperty: 将查询到的主键赋给 parameterType的哪个属性 order: 
+			AFTER，插入之后执行查询 -->
+		<selectKey keyProperty="id" order="AFTER" resultType="int">
+			SELECT
+			LAST_INSERT_ID()
+		</selectKey>
+		insert into t_bs_task_commit_record
+			(stuTaskId,commitTime,commitFileName,commitFileNewName,status,statusPhase,extra,delFlag,addTime,lmtTime) 
+			values(#{stuTaskId},#{commitTime},#{commitFileName},#{commitFileNewName},#{status},#{statusPhase},#{extra},0,now(),now());
+	</insert>
+	
+	<delete id="deleteBsTaskCommitRecord" parameterType="Integer">
+		update t_bs_task_commit_record set delFlag = 1 where id = #{id}
+	</delete>
+
+	<update id="updateBsTaskCommitRecord" parameterType="com.sxsram.ssm.entity.BsTaskCommitRecord">
+		update t_bs_task_commit_record
+		<trim prefix="set" suffixOverrides=",">
+			<if test="studentId != null">
+				studentId = #{studentId},
+			</if>
+			<if test="taskId != null">
+				taskId = md5(#{taskId}),
+			</if>
+			<if test="status != null">
+				status = #{status},
+			</if>
+			<if test="statusPhase != null">
+				statusPhase = #{statusPhase},
+			</if>
+			<if test="extra != null">
+				extra = #{extra},
+			</if>
+			<if test="delFlag != null">
+				delFlag = #{delFlag},
+			</if>
+			<if test="addTime != null">
+				addTime = #{addTime},
+			</if>
+		</trim>
+		<where>
+			id = #{id}
+		</where>
+	</update>
+	
+	<select id="querySingleBsTaskCommitRecord" parameterType="com.sxsram.ssm.entity.BsTaskCommitRecordQueryVo" 
+		resultType="com.sxsram.ssm.entity.BsTaskCommitRecord">
+		select 
+			*
+		from 
+			t_bs_task_commit_record commitRecord
+		where
+			1 = 1
+			<if test="queryCondition != null">
+				<if test="queryCondition.whereCond != null">
+					and ${queryCondition.whereCond}
+				</if>
+			</if>
+			<if test="pagination != null">
+				<if test="pagination.orderByCols != null">
+					order by ${pagination.orderByCols}
+				</if>
+				<if test="pagination.limitStart != null">
+					limit #{pagination.limitStart},#{pagination.limitNum}
+				</if>
+			</if>
+	</select>
+	
+	<select id="queryMultiBsTaskCommitRecords" parameterType="com.sxsram.ssm.entity.BsTaskCommitRecordQueryVo" 
+		resultType="com.sxsram.ssm.entity.BsTaskCommitRecord">
+		select 
+			*
+		from 
+			t_bs_task_commit_record commitRecord
+		where
+			1 = 1
+			<if test="queryCondition != null">
+				<if test="queryCondition.whereCond != null">
+					and ${queryCondition.whereCond}
+				</if>
+			</if>
+			<if test="pagination != null">
+				<if test="pagination.orderByCols != null">
+					order by ${pagination.orderByCols}
+				</if>
+				<if test="pagination.limitStart != null">
+					limit #{pagination.limitStart},#{pagination.limitNum}
+				</if>
+			</if>
+	</select>
+</mapper>

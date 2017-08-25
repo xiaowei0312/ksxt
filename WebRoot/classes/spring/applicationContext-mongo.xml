@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:mongo="http://www.springframework.org/schema/data/mongo"
+	xsi:schemaLocation="http://www.springframework.org/schema/data/mongo http://www.springframework.org/schema/data/mongo/spring-mongo.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	
+	<!-- <context:component-scan base-package="com.mongo" />
+	获取配置资源
+	<context:property-placeholder location="classpath:jdbc.properties" />
+	<bean class="cn.mongo.util.SpringContextUtil"></bean> -->
+	
+	<mongo:mongo-client id="mongo" replica-set="${mongo.replicaSet}" credentials="zhangtian:zhangtian@database">
+	  <!--
+	     connections-per-host: 每个主机答应的连接数（每个主机的连接池大小），当连接池被用光时，会被阻塞住 
+	     max-wait-time: 被阻塞线程从连接池获取连接的最长等待时间（ms）
+	     connect-timeout:在建立（打开）套接字连接时的超时时间（ms）
+	     socket-timeout:套接字超时时间;该值会被传递给Socket.setSoTimeout(int)
+	     slave-ok:指明是否答应驱动从次要节点或者奴隶节点读取数据
+	     -->
+	<mongo:client-options write-concern="SAFE"
+	    connections-per-host="${mongo.connectionsPerHost}"
+		threads-allowed-to-block-for-connection-multiplier="${mongo.threadsAllowedToBlockForConnectionMultiplier}"
+		connect-timeout="${mongo.connectTimeout}" 
+		max-wait-time="${mongo.maxWaitTime}"
+		socket-keep-alive="${mongo.socketKeepAlive}"
+		socket-timeout="${mongo.socketTimeout}"/>
+	</mongo:mongo-client>
+	
+   	<!-- 设置使用的数据库 名-->
+    <mongo:db-factory id="mongoDbFactory" dbname="database" mongo-ref="mongo"/>
+    
+    <!-- mongodb的模板 -->
+    <bean id="mongoTemplate" class="org.springframework.data.mongodb.core.MongoTemplate">
+       <constructor-arg name="mongoDbFactory" ref="mongoDbFactory"/>
+    </bean>
+</beans>

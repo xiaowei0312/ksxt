@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.sxsram.ssm.mapper.TrainingClassMapper">
+	<insert id="insertNewTrainingClass" parameterType="com.sxsram.ssm.entity.TrainingClass">
+		<!-- 将插入数据的主键返回，返回到user对象中 keyProperty: 将查询到的主键赋给 parameterType的哪个属性 order: 
+			AFTER，插入之后执行查询 -->
+		<selectKey keyProperty="id" order="AFTER" resultType="int">
+			SELECT
+			LAST_INSERT_ID()
+		</selectKey>
+		insert into t_training_class (name,beginTime,endTime,status,trainingId,extra,delFlag,addTime,lmtTime) 
+			values(#{name},#{beginTime},#{endTime},#{status},#{trainingId},null,0,now(),now());
+	</insert>
+	
+	<delete id="delTrainingClass" parameterType="Integer">
+		update t_training_class set delFlag = 1 where id = #{id}
+	</delete>
+	
+	<update id="updateTrainingClass" parameterType="com.sxsram.ssm.entity.TrainingClass">
+		update t_training_class
+		<trim prefix="set" suffixOverrides=",">
+			<if test="name != null">
+				name = #{name},
+			</if>
+			<if test="beginTime != null">
+				beginTime = #{beginTime},
+			</if>
+			<if test="endTime != null">
+				endTime = #{endTime},
+			</if>
+			<if test="status != null">
+				status = #{status},
+			</if>
+			<if test="trainingId != null">
+				trainingId = #{trainingId},
+			</if>
+			<if test="extra != null">
+				extra = #{extra},
+			</if>
+			<if test="delFlag != null">
+				delFlag = #{delFlag},
+			</if>
+			<if test="extra != null">
+				extra = #{extra},
+			</if>
+			<if test="addTime != null">
+				addTime = #{addTime},
+			</if>
+		</trim>
+		<where>
+			id = #{id}
+		</where>
+	</update>
+	
+	<select id="queryMultiTrainingClasss" parameterType="com.sxsram.ssm.entity.TrainingClassQueryVo" resultMap="trainingClassMap">
+		select 
+			c.*,d.name as dirName,
+				d.sequence as dirSequence,d.extra as dirExtra,d.delFlag as dirDelFlag,d.addTime as dirAddTime,
+					d.lmtTime as dirLmtTime
+		from 
+			t_training_class c left join t_training_dir d
+				on c.trainingId = d.id
+		where
+			1 = 1
+			<if test="queryCondition != null">
+				<if test="queryCondition.whereCond != null">
+					and ${queryCondition.whereCond}
+				</if>
+			</if>
+			<if test="pagination != null">
+				<if test="pagination.orderByCols != null">
+					order by ${pagination.orderByCols}
+				</if>
+				<if test="pagination.limitStart != null">
+					limit #{pagination.limitStart},#{pagination.limitNum}
+				</if>
+			</if>
+	</select>
+	
+	<select id="querySingleTrainingClass" parameterType="com.sxsram.ssm.entity.TrainingClassQueryVo" resultMap="trainingClassMap">
+		select 
+			c.*,d.name as dirName,
+				d.sequence as dirSequence,d.extra as dirExtra,d.delFlag as dirDelFlag,d.addTime as dirAddTime,
+					d.lmtTime as dirLmtTime
+		from 
+			t_training_class c left join t_training_dir d
+				on c.trainingId = d.id
+		where
+			1 = 1
+			<if test="queryCondition != null">
+				<if test="queryCondition.whereCond != null">
+					and ${queryCondition.whereCond}
+				</if>
+			</if>
+			<if test="pagination != null">
+				<if test="pagination.orderByCols != null">
+					order by ${pagination.orderByCols}
+				</if>
+				<if test="pagination.limitStart != null">
+					limit #{pagination.limitStart},#{pagination.limitNum}
+				</if>
+			</if>
+	</select>
+	
+	<resultMap type="com.sxsram.ssm.entity.TrainingClass" id="trainingClassMap" autoMapping="true">
+		<id column="id" property="id" />
+		<association property="trainingDir" javaType="com.sxsram.ssm.entity.TrainingDir">
+			<id column="trainingId" property="id" />
+			<result column="dirName" property="name" />
+			<result column="dirSequence" property="sequence" />
+			<result column="dirExtra" property="extra" />
+			<result column="dirDelFlag" property="delFlag" />
+			<result column="dirAddTime" property="addTime" />
+			<result column="dirLmtTime" property="lmtTime" />
+		</association>
+	</resultMap>
+</mapper>

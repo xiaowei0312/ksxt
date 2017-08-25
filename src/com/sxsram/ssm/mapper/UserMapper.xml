@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.sxsram.ssm.mapper.UserMapper">
+	<insert id="insertNewUser" parameterType="com.sxsram.ssm.entity.User">
+		<!-- 将插入数据的主键返回，返回到user对象中 keyProperty: 将查询到的主键赋给 parameterType的哪个属性 order: 
+			AFTER，插入之后执行查询 -->
+		<selectKey keyProperty="id" order="AFTER" resultType="int">
+			SELECT
+			LAST_INSERT_ID()
+		</selectKey>
+		insert into t_user (name,username,password,roleId,extra,delFlag,addTime,lmtTime) 
+			values(#{name},#{username},#{password},#{roleId},'',0,now(),now());
+	</insert>
+	
+	<delete id="delUser" parameterType="Integer">
+		update t_user set delFlag = 1 where id = #{id}
+	</delete>
+	
+	<update id="updateUser" parameterType="com.sxsram.ssm.entity.User">
+		update t_user
+		<trim prefix="set" suffixOverrides=",">
+			<if test="name != null">
+				name = #{name},
+			</if>
+			<if test="username != null">
+				username = #{username},
+			</if>
+			<if test="password != null">
+				password = #{password},
+			</if>
+			<if test="username != null">
+				username = #{username},
+			</if>
+			<if test="extra != null">
+				extra = #{extra},
+			</if>
+			<if test="delFlag != null">
+				delFlag = #{delFlag},
+			</if>
+			<if test="extra != null">
+				extra = #{extra},
+			</if>
+			<if test="addTime != null">
+				addTime = #{addTime},
+			</if>
+		</trim>
+		<where>
+			id = #{id}
+		</where>
+	</update>
+	
+	<select id="querySingleUser" parameterType="com.sxsram.ssm.entity.UserQueryVo" resultMap="userMap">
+		select 
+			u.*,
+			ur.roleId as rid,r.roleName as rrolename,r.roleGrade as rrolegrade,r.sequence as rsequence,
+			rp.permId as pid, p.name as pname,
+			p.operationId as oid,o.name as oname,o.url as ourl,o.imgUrl as oimgurl,o.style as ostyle,
+				o.seqnum as oseqnum,o.isMenu as oismenu,o.parentId as oparentid
+		from 
+			t_user u 
+				left join t_user_role ur on u.id = ur.userId 
+				left join t_role r on ur.roleId = r.id
+				left join t_role_perm rp on rp.roleId = r.id
+				left join t_permission p on rp.permId = p.id
+				left join t_operation o on p.operationId = o.id
+		where
+			1 = 1
+			<if test="queryCondition != null">
+				<if test="queryCondition.whereCond != null">
+					and ${queryCondition.whereCond}
+				</if>
+			</if>
+			<if test="pagination != null">
+				<if test="pagination.orderByCols != null">
+					order by ${pagination.orderByCols}
+				</if>
+				<if test="pagination.limitStart != null">
+					limit #{pagination.limitStart},#{pagination.limitNum}
+				</if>
+			</if>
+	</select>
+	
+	<select id="queryMultiUser" parameterType="com.sxsram.ssm.entity.UserQueryVo" resultMap="userMap">
+		select 
+			u.*,
+			ur.roleId as rid,r.roleName as rrolename,r.roleGrade as rrolegrade,r.sequence as rsequence,
+			rp.permId as pid, p.name as pname,
+			p.operationId as oid,o.name as oname,o.url as ourl,o.imgUrl as oimgurl,o.style as ostyle,
+				o.seqnum as oseqnum,o.isMenu as oismenu,o.parentId as oparentid
+		from 
+			t_user u 
+				left join t_user_role ur on u.id = ur.userId 
+				left join t_role r on ur.roleId = r.id
+				left join t_role_perm rp on rp.roleId = r.id
+				left join t_permission p on rp.permId = p.id
+				left join t_operation o on p.operationId = o.id
+		where
+			1 = 1
+			<if test="queryCondition != null">
+				<if test="queryCondition.whereCond != null">
+					and ${queryCondition.whereCond}
+				</if>
+			</if>
+			<if test="pagination != null">
+				<if test="pagination.orderByCols != null">
+					order by ${pagination.orderByCols}
+				</if>
+				<if test="pagination.limitStart != null">
+					limit #{pagination.limitStart},#{pagination.limitNum}
+				</if>
+			</if>
+	</select>
+	
+	<resultMap type="com.sxsram.ssm.entity.User" id="userMap" autoMapping="true">
+		<id column="id" property="id" />
+		<collection property="roleList" ofType="com.sxsram.ssm.entity.Role">
+			<id column="rid" property="id" />
+			<result column="rrolename" property="roleName" />
+			<result column="rrolegrade" property="roleGrade" />
+			<result column="rsequence" property="sequence" />
+			<collection property="permissionList"
+				ofType="com.sxsram.ssm.entity.Permission">
+				<id column="pid" property="id" />
+				<result column="pname" property="name" />
+				<association property="operation"
+					javaType="com.sxsram.ssm.entity.Operation">
+					<id column="oid" property="id" />
+					<result column="oname" property="name" />
+					<result column="ourl" property="url" />
+					<result column="oimgurl" property="imgUrl" />
+					<result column="oismenu" property="isMenu" />
+					<result column="ostyle" property="style" />
+					<result column="oseqnum" property="seqnum" />
+					<result column="oparentid" property="parentId" />
+				</association>
+			</collection>
+		</collection>
+	</resultMap>
+</mapper>
+

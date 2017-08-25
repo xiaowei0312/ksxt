@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.sxsram.ssm.mapper.CollageMajorMapper">
+	<insert id="insertNewCollageMajor" parameterType="com.sxsram.ssm.entity.CollageMajor">
+		<!-- 将插入数据的主键返回，返回到user对象中 keyProperty: 将查询到的主键赋给 parameterType的哪个属性 order: 
+			AFTER，插入之后执行查询 -->
+		<selectKey keyProperty="id" order="AFTER" resultType="int">
+			SELECT
+			LAST_INSERT_ID()
+		</selectKey>
+		insert into t_collage_major (parentId,name,sequence,extra,delFlag,addTime,lmtTime)
+		values(#{parentId},#{name},#{sequence},'',0,now(),now())
+	</insert>
+
+	<delete id="delCollageMajor" parameterType="Integer">
+		update t_collage_major set
+		delFlag = 1 where id = #{id}
+	</delete>
+
+	<update id="updateCollageMajor" parameterType="com.sxsram.ssm.entity.CollageMajor">
+		update t_collage_major
+		<trim prefix="set" suffixOverrides=",">
+			<if test="parentId != null">
+				parentId = #{parentId},
+			</if>
+			<if test="name != null">
+				name = #{name},
+			</if>
+			<if test="sequence != null">
+				sequence = #{sequence},
+			</if>
+			<if test="extra != null">
+				extra = #{extra},
+			</if>
+			<if test="delFlag != null">
+				delFlag = #{delFlag},
+			</if>
+			<if test="extra != null">
+				extra = #{extra},
+			</if>
+			<if test="addTime != null">
+				addTime = #{addTime},
+			</if>
+		</trim>
+		<where>
+			id = #{id}
+		</where>
+	</update>
+
+	<select id="querySingleCollageMajor" parameterType="com.sxsram.ssm.entity.CollageMajorQueryVo"
+		resultType="com.sxsram.ssm.entity.CollageMajor">
+		select
+			major.*
+		from
+			t_collage_major major left join t_collage_major dep
+				on major.parentId = dep.id
+					left join t_collage_major col
+						on dep.parentId = col.id
+		where
+		1 = 1
+		<if test="queryCondition != null">
+			<if test="queryCondition.whereCond != null">
+				and ${queryCondition.whereCond}
+			</if>
+		</if>
+		<if test="pagination != null">
+			<if test="pagination.orderByCols != null">
+				order by ${pagination.orderByCols}
+			</if>
+			<if test="pagination.limitStart != null">
+				limit #{pagination.limitStart},#{pagination.limitNum}
+			</if>
+		</if>
+	</select>
+
+	<select id="queryMultiCollageMajors" parameterType="com.sxsram.ssm.entity.CollageMajorQueryVo"
+		resultType="com.sxsram.ssm.entity.CollageMajor">
+		select
+			major.*
+		from
+			t_collage_major major left join t_collage_major dep
+				on major.parentId = dep.id
+					left join t_collage_major col
+						on dep.parentId = col.id
+		where
+		1 = 1
+		<if test="queryCondition != null">
+			<if test="queryCondition.whereCond != null">
+				and ${queryCondition.whereCond}
+			</if>
+		</if>
+		<if test="pagination != null">
+			<if test="pagination.orderByCols != null">
+				order by ${pagination.orderByCols}
+			</if>
+			<if test="pagination.limitStart != null">
+				limit #{pagination.limitStart},#{pagination.limitNum}
+			</if>
+		</if>
+	</select>
+	
+	<!-- <select id="querySingleCollageMajor" parameterType="com.sxsram.ssm.entity.CollageMajorQueryVo"
+		resultMap="collageMajorMap">
+		select
+			major.*,dep.id as depId,dep.name as depName,dep.sequence as depSeqence,dep.level as depLevel,
+				col.id as colId,col.name as colName,col.sequence as colSequence,col.level as colLevel
+		from
+			t_collage_major major left join t_collage_major dep
+				on major.parentId = dep.id
+					left join t_collage_major col
+						on dep.parentId = col.id
+		where
+		1 = 1
+		<if test="queryCondition != null">
+			<if test="queryCondition.whereCond != null">
+				and ${queryCondition.whereCond}
+			</if>
+		</if>
+		<if test="pagination != null">
+			<if test="pagination.orderByCols != null">
+				order by ${pagination.orderByCols}
+			</if>
+			<if test="pagination.limitStart != null">
+				limit #{pagination.limitStart},#{pagination.limitNum}
+			</if>
+		</if>
+	</select>
+
+	<select id="queryMultiCollageMajors" parameterType="com.sxsram.ssm.entity.CollageMajorQueryVo"
+		resultMap="collageMajorMap">
+		select
+			major.*,dep.id as depId,dep.name as depName,dep.sequence as depSeqence,dep.level as depLevel,
+				col.id as colId,col.name as colName,col.sequence as colSequence,col.level as colLevel
+		from
+			t_collage_major major left join t_collage_major dep
+				on major.parentId = dep.id
+					left join t_collage_major col
+						on dep.parentId = col.id
+		where
+		1 = 1
+		<if test="queryCondition != null">
+			<if test="queryCondition.whereCond != null">
+				and ${queryCondition.whereCond}
+			</if>
+		</if>
+		<if test="pagination != null">
+			<if test="pagination.orderByCols != null">
+				order by ${pagination.orderByCols}
+			</if>
+			<if test="pagination.limitStart != null">
+				limit #{pagination.limitStart},#{pagination.limitNum}
+			</if>
+		</if>
+	</select> -->
+
+	<resultMap type="com.sxsram.ssm.entity.CollageMajor" id="collageMajorMap"
+		autoMapping="true">
+		<id column="id" property="id" />
+		<association property="parent"
+			javaType="com.sxsram.ssm.entity.CollageMajor">
+			<id column="depId" property="id" />
+			<result column="depName" property="name" />
+			<result column="depSequence" property="sequence" />
+			<result column="depLevel" property="level" />
+			<association property="parent"
+				javaType="com.sxsram.ssm.entity.CollageMajor">
+				<id column="colId" property="id" />
+				<result column="colName" property="name" />
+				<result column="colSequence" property="sequence" />
+				<result column="colLevel" property="level" />
+			</association>
+		</association>
+	</resultMap>
+</mapper>
+

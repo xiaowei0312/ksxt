@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.sxsram.ssm.mapper.StudentMapper">
+	<insert id="batchInsertStudent" useGeneratedKeys="true"
+		parameterType="java.util.List">
+		<selectKey resultType="int" keyProperty="id" order="AFTER">
+			SELECT
+			LAST_INSERT_ID()
+		</selectKey>
+		insert into t_student (name,gender,idcard,stuNo,gradeNo,
+		classNo,phone,majorId,trainingClassId,bsTitleId,bsInnerTeacher,bsOuterTeacher,
+		password,extra,delFlag,addTime,lmtTime) values
+		<foreach collection="list" item="item" index="index"
+			separator=",">
+			(#{item.name},#{item.gender},#{item.idCard},#{item.stuNo},#{item.gradeNo},#{item.classNo},#{item.phone},#{item.majorId},
+			#{item.trainingClassId},#{item.bsTitleId},#{item.bsInnerTeacher},#{item.bsOuterTeacher},
+			md5(#{item.password}),null,0,now(),now())
+		</foreach>
+	</insert>
+
+	<insert id="inserNewStudent" parameterType="com.sxsram.ssm.entity.Student">
+		<!-- 将插入数据的主键返回，返回到user对象中 keyProperty: 将查询到的主键赋给 parameterType的哪个属性 order: 
+			AFTER，插入之后执行查询 -->
+		<selectKey keyProperty="id" order="AFTER" resultType="int">
+			SELECT
+			LAST_INSERT_ID()
+		</selectKey>
+		insert into t_student (name,gender,idcard,stuNo,gradeNo,
+		classNo,phone,majorId,trainingClassId,bsTitleId,bsInnerTeacher,bsOuterTeacher,
+		password,extra,delFlag,addTime,lmtTime) values
+		(#{name},#{gender},#{idCard},#{stuNo},#{gradeNo},#{classNo},#{phone},#{majorId},
+		#{trainingClassId},#{bsTitleId},#{bsInnerTeacher},#{bsOuterTeacher},
+		md5(#{password}),null,0,now(),now())
+	</insert>
+
+	<delete id="deleteStudent" parameterType="Integer">
+		update t_student set
+		delFlag = 1 where id = #{id}
+	</delete>
+
+	<!-- <update id="updateStudent" parameterType="com.sxsram.ssm.entity.Student"> 
+		</update> -->
+
+	<update id="updateStudent" parameterType="com.sxsram.ssm.entity.Student">
+		update t_student
+		<trim prefix="set" suffixOverrides=",">
+			<if test="name != null">
+				name = #{name},
+			</if>
+			<if test="gender != null">
+				gender = #{gender},
+			</if>
+			<if test="idCard != null">
+				idcard = #{idCard},
+			</if>
+			<if test="stuNo != null">
+				stuNo = #{stuNo},
+			</if>
+			<if test="gradeNo != null">
+				gradeNo = #{gradeNo},
+			</if>
+			<if test="classNo != null">
+				classNo = #{classNo},
+			</if>
+			<if test="phone != null">
+				phone = #{phone},
+			</if>
+			<if test="majorId != null">
+				majorId = #{majorId},
+			</if>
+			<if test="trainingClassId != null">
+				trainingClassId = #{trainingClassId},
+			</if>
+			<if test="bsTitleId != null">
+				bsTitleId = #{bsTitleId},
+			</if>
+			<if test="bsInnerTeacher != null">
+				bsInnerTeacher = #{bsInnerTeacher},
+			</if>
+			<if test="bsOuterTeacher != null">
+				bsOuterTeacher = #{bsOuterTeacher},
+			</if>
+			<if test="password != null">
+				password = md5(#{password}),
+			</if>
+		</trim>
+		<where>
+			<if test="id != null">
+				id = #{id}
+			</if>
+		</where>
+	</update>
+
+	<select id="querySingleStudent" parameterType="com.sxsram.ssm.entity.StudentQueryVo"
+		resultMap="studentMap">
+		select
+		stu.*,
+		major.name as majorName,
+		dep.id as depId,dep.name as
+		depName,
+		col.id as colId,col.name as colName,
+		class.name as className,
+		dir.id as dirId,dir.name as dirName,
+		bsDir.id as bsDirId,bsDir.name as
+		bsDirName,
+		bsTitle.name as bsTitleName
+		from
+		t_student stu join
+		t_collage_major
+		major
+		on stu.majorId = major.id
+		join t_collage_major dep
+		on
+		major.parentId = dep.id
+		join t_collage_major col
+		on dep.parentId =
+		col.id
+		left join t_training_class class
+		on stu.trainingClassId = class.id
+		left join t_training_dir dir
+		on class.trainingId = dir.id
+		left join t_bs_title
+		bsTitle
+		on stu.bsTitleId
+		= bsTitle.id
+		left join t_training_dir bsDir
+		on
+		bsTitle.bsDirId = bsDir.id
+		where
+		1 = 1
+		<if test="queryCondition != null">
+			<if test="queryCondition.whereCond != null">
+				and ${queryCondition.whereCond}
+			</if>
+		</if>
+		<if test="pagination != null">
+			<if test="pagination.orderByCols != null">
+				order by ${pagination.orderByCols}
+			</if>
+			<if test="pagination.limitStart != null">
+				limit #{pagination.limitStart},#{pagination.limitNum}
+			</if>
+		</if>
+	</select>
+
+	<select id="queryMultiStudents" parameterType="com.sxsram.ssm.entity.StudentQueryVo"
+		resultMap="studentMap">
+		select
+		stu.*,
+		major.name as majorName,
+		dep.id as depId,dep.name as
+		depName,
+		col.id as colId,col.name as colName,
+		class.name as className,
+		dir.id as dirId,dir.name as dirName,
+		bsDir.id as bsDirId,bsDir.name as
+		bsDirName,
+		bsTitle.name as bsTitleName
+		from
+		t_student stu join
+		t_collage_major
+		major
+		on stu.majorId = major.id
+		join t_collage_major dep
+		on
+		major.parentId = dep.id
+		join t_collage_major col
+		on dep.parentId =
+		col.id
+		left join t_training_class class
+		on stu.trainingClassId = class.id
+		left join t_training_dir dir
+		on class.trainingId = dir.id
+		left join t_bs_title
+		bsTitle
+		on stu.bsTitleId
+		= bsTitle.id
+		left join t_training_dir bsDir
+		on
+		bsTitle.bsDirId = bsDir.id
+		where
+		1 = 1
+		<if test="queryCondition != null">
+			<if test="queryCondition.whereCond != null">
+				and ${queryCondition.whereCond}
+			</if>
+		</if>
+		<if test="pagination != null">
+			<if test="pagination.orderByCols != null">
+				order by ${pagination.orderByCols}
+			</if>
+			<if test="pagination.limitStart != null">
+				limit #{pagination.limitStart},#{pagination.limitNum}
+			</if>
+		</if>
+	</select>
+
+	<resultMap type="com.sxsram.ssm.entity.Student" id="studentMap">
+		<id column="id" property="id" />
+		<result column="name" property="name" />
+		<result column="gender" property="gender" />
+		<result column="idCard" property="idCard" />
+		<result column="stuNo" property="stuNo" />
+		<result column="gradeNo" property="gradeNo" />
+		<result column="classNo" property="classNo" />
+		<result column="phone" property="phone" />
+		<result column="majorId" property="majorId" />
+		<result column="trainingClassId" property="trainingClassId" />
+		<result column="bsTitleId" property="bsTitleId" />
+		<result column="bsInnerTeacher" property="bsInnerTeacher" />
+		<result column="bsOuterTeacher" property="bsOuterTeacher" />
+		<result column="password" property="password" />
+
+		<association property="major" javaType="com.sxsram.ssm.entity.CollageMajor">
+			<id column="majorId" property="id" />
+			<result column="majorName" property="name" />
+			<association property="parent"
+				javaType="com.sxsram.ssm.entity.CollageMajor">
+				<id column="depId" property="id" />
+				<result column="depName" property="name" />
+				<association property="parent"
+					javaType="com.sxsram.ssm.entity.CollageMajor">
+					<id column="colId" property="id" />
+					<result column="colName" property="name" />
+				</association>
+			</association>
+		</association>
+		<association property="trainingClass"
+			javaType="com.sxsram.ssm.entity.TrainingClass">
+			<id column="trainingClassId" property="id" />
+			<result column="className" property="name" />
+			<association property="trainingDir" javaType="com.sxsram.ssm.entity.TrainingDir">
+				<id column="dirId" property="id" />
+				<result column="dirName" property="name" />
+			</association>
+		</association>
+		<association property="bsTitle" javaType="com.sxsram.ssm.entity.BsTitle">
+			<id column="bsTitleId" property="id" />
+			<result column="bsTitleName" property="name" />
+			<association property="bsDir" javaType="com.sxsram.ssm.entity.TrainingDir">
+				<id column="bsDirId" property="id" />
+				<result column="bsDirName" property="name" />
+			</association>
+		</association>
+	</resultMap>
+</mapper>
